@@ -73,6 +73,50 @@ with mp_face_mesh.FaceMesh( #o with garante que o o modelo seja liberado automat
 
                 # distância da boca
                 mouth_dist = euclidean_distance(top_lip, bottom_lip)
+
+                # ======== IRIS TRACKING CORRIGIDO ========
+
+                # Pontos de referência (corrigidos p/ câmera espelhada)
+                right_inner = face_landmarks.landmark[33]
+                right_outer = face_landmarks.landmark[133]
+
+                left_inner  = face_landmarks.landmark[362]
+                left_outer  = face_landmarks.landmark[263]
+
+                # Centros das íris
+                right_iris = face_landmarks.landmark[468]
+                left_iris  = face_landmarks.landmark[473]
+
+                def to_px(lm):
+                    return int(lm.x * frame_w), int(lm.y * frame_h)
+
+                r_iris_px = to_px(right_iris)
+                l_iris_px = to_px(left_iris)
+
+                cv2.circle(frame, r_iris_px, 3, (255, 0, 0), -1)
+                cv2.circle(frame, l_iris_px, 3, (255, 0, 0), -1)
+
+                # Razões
+                def get_ratio(inner, iris, outer):
+                    return euclidean_distance(inner, iris) / euclidean_distance(inner, outer)
+
+                right_ratio = get_ratio(right_inner, right_iris, right_outer)
+                left_ratio  = get_ratio(left_inner,  left_iris,  left_outer)
+
+                gaze_ratio = (right_ratio + left_ratio) / 2
+
+                # Classificação com thresholds ajustados
+                if gaze_ratio < 0.40:
+                    gaze_text = "Olhando para DIREITA"
+                elif gaze_ratio > 0.65:
+                    gaze_text = "Olhando para ESQUERDA"
+                else:
+                    gaze_text = "Olhando para FRENTE"
+
+                cv2.putText(frame, gaze_text, (50, 90),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
+
+
                 # distância entre olhos
                 eye_dist = euclidean_distance(left_eye, right_eye)
 

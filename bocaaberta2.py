@@ -69,7 +69,34 @@ with mp_face_mesh.FaceMesh( #o with garante que o o modelo seja liberado automat
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
 
                 # desenha landmarks nos frames
-                mp_drawing.draw_landmarks(
+                mp_drawing.draw_landmarks(# Defina o limiar mais sensível (exemplo: de 0.6 para 0.4)
+limiar = 0.4  # ajuste conforme necessário
+
+# Dentro do loop, para depuração (opcional)
+print(f"mouth_ratio: {mouth_ratio:.2f}")
+
+# O restante do código permanece igual
+if mouth_ratio > limiar:
+    cv2.putText(frame, "Boca Aberta / Bocejo", (50, 50),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)# Defina o limiar mais sensível (exemplo: de 0.6 para 0.4)
+limiar = 0.4  # ajuste conforme necessário
+
+# Dentro do loop, para depuração (opcional)
+print(f"mouth_ratio: {mouth_ratio:.2f}")
+
+# O restante do código permanece igual
+if mouth_ratio > limiar:
+    cv2.putText(frame, "Boca Aberta / Bocejo", (50, 50),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)# Defina o limiar mais sensível (exemplo: de 0.6 para 0.4)
+limiar = 0.4  # ajuste conforme necessário
+
+# Dentro do loop, para depuração (opcional)
+print(f"mouth_ratio: {mouth_ratio:.2f}")
+
+# O restante do código permanece igual
+if mouth_ratio > limiar:
+    cv2.putText(frame, "Boca Aberta / Bocejo", (50, 50),
+                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
                     frame,
                     face_landmarks,
                     mp_face_mesh.FACEMESH_CONTOURS)

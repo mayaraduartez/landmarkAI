@@ -9,6 +9,9 @@ import cv2 #openCV
 import mediapipe as mp #framework do google
 import math # calcular a distancia euclidiana entre pontos (chat sugeriu o math)
 
+def euclidean_distance(p1, p2):
+    return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
+
 #declara modulos
 mp_face_mesh = mp.solutions.face_mesh
 mp_drawing = mp.solutions.drawing_utils #desenhar landmarks (pontos) e conexões no frame.
@@ -18,9 +21,6 @@ mp_hands = mp.solutions.hands
 #abre o webcam no indice 0 (camera padrao)
 cap = cv2.VideoCapture(0)
 
-#function para medir a distancia em linha reta
-def euclidean_distance(p1, p2):
-    return math.sqrt((p1.x - p2.x)*2 + (p1.y - p2.y)*2)
 
 limiar = 0.70
 

@@ -7,7 +7,6 @@ import numpy as np
 import math
 
 # ================= FUNÇÕES =================
-
 def euclidean_distance(p1, p2):
     return math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2)
 
@@ -49,13 +48,12 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 
 
 # ================= INICIALIZAÇÃO =================
-
-capture = cv2.VideoCapture(0)
+capture = cv2.VideoCapture(0) # 0 ou o caminho do video 
 
 base_options = python.BaseOptions(model_asset_path='face_landmarker.task')
 options = vision.FaceLandmarkerOptions(
     base_options=base_options,
-    num_faces=1,
+    num_faces=2,
     min_face_detection_confidence=0.5,
     min_tracking_confidence=0.5
 )
@@ -75,12 +73,15 @@ while True:
     success, frame = capture.read()
     if not success:
         break
+    
+    frame = cv2.flip(frame, 1)  # Espelhar o feed da câmera
 
     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
 
     detection_result = detector.detect(mp_image)
     hand_result = hand_detector.detect(mp_image)
+    frame_h, frame_w, _ = frame.shape
 
     annotated_image = draw_landmarks_on_image(mp_image.numpy_view(), detection_result)
 
@@ -103,29 +104,40 @@ while True:
 
             # ===== DIREÇÃO DO OLHAR (DOIS OLHOS) =====
 
-            # olho esquerdo
-            left_eye_inner = face_landmarks[133]
-            left_eye_outer = face_landmarks[33]
-            left_iris = face_landmarks[468]
+            # Pontos de referência (corrigidos p/ câmera espelhada)
+            right_inner = face_landmarks[33]
+            right_outer = face_landmarks[133]
 
-            left_width = left_eye_outer.x - left_eye_inner.x
-            left_pos = (left_iris.x - left_eye_inner.x) / left_width
+            left_inner  = face_landmarks[362]
+            left_outer  = face_landmarks[263]
 
-            # olho direito
-            right_eye_inner = face_landmarks[362]
-            right_eye_outer = face_landmarks[263]
-            right_iris = face_landmarks[473]
+            # Centros das íris
+            right_iris = face_landmarks[468]
+            left_iris  = face_landmarks[473]
 
-            right_width = right_eye_outer.x - right_eye_inner.x
-            right_pos = (right_iris.x - right_eye_inner.x) / right_width
+            def to_px(lm):
+                return int(lm.x * frame_w), int(lm.y * frame_h)
 
-            # média
-            iris_pos = (left_pos + right_pos) / 2
+            r_iris_px = to_px(right_iris)
+            l_iris_px = to_px(left_iris)
+
+            cv2.circle(frame, r_iris_px, 3, (255, 0, 0), -1)
+            cv2.circle(frame, l_iris_px, 3, (255, 0, 0), -1)
+
+            # Razões
+            def get_ratio(inner, iris, outer):
+                return euclidean_distance(inner, iris) / euclidean_distance(inner, outer)
+
+            right_ratio = get_ratio(right_inner, right_iris, right_outer)
+            left_ratio  = get_ratio(left_inner,  left_iris,  left_outer)
+
+            gaze_ratio = (right_ratio + left_ratio) / 2
+            print(gaze_ratio)
 
             # classificação
-            if iris_pos < 0.4:
+            if gaze_ratio < 0.4:
                 direcao = "Olhando ESQUERDA"
-            elif iris_pos > 0.6:
+            elif gaze_ratio > 0.6:
                 direcao = "Olhando DIREITA"
             else:
                 direcao = "Olhando FRENTE"
